@@ -2,21 +2,20 @@ import obd
 from colorama import Fore, Back, Style
 from subprocess import call
 import RPi.GPIO as GPIO
-import fancy_output
+from fancy_output import print_fancy as fullscreen_out
+from time import sleep
+import bluetooth
 
-# pip install obd
-# pip install colorama
-#obd.logger.setLevel(obd.logging.DEBUG)
 
 def main():
     #connection = obd.OBD()
     connection = obd.Async()
 
     text_status = '---------------- ' + connection.status() + ' ----------------'
-
+    #connection.start() ?
     if connection.status() == 'Not Connected':
         print_red(text_status)
-        connection.stop()
+        #connection.stop()
         return
     else:
         print_green(text_status)
@@ -24,15 +23,13 @@ def main():
     ecu = connection.query(obd.commands.GET_DTC)
     print_green(ecu.value)
 
-    fuel = obd.commands['FUEL_STATUS']
-    coolant = obd.commands['COOLANT_TEMP']
-    ethanol = obd.commands['ETHANOL_PERCENT']
+    #fuel = str(obd.commands['FUEL_STATUS'])
+    #coolant = str(obd.commands['COOLANT_TEMP'])
+    #ethanol = str(obd.commands['ETHANOL_PERCENT'])
 
-    print_green('\nFuel: ' + str(fuel) +'\n' + 'Coolant: ' + str(coolant) + '\n' + 'Ethanol percentage: ' + str(ethanol) +'%\n\n')
-
+    #print_green('Fuel: ' + fuel +'\nCoolant: ' + coolant + '\nEthanol percentage: ' + ethanol + ' %\n')
 
     #rpm = connection.watch(obd.commands.RPM, callback=new_value)
-
     #rpm = str(connection.watch(obd.commands.RPM))
     #engine_load = str(connection.watch(obd.commands.ENGINE_LOAD))
     #fuel_injection = str(connection.watch(obd.commands.FUEL_INJECT_TIMING))
@@ -64,30 +61,45 @@ def switch_handler():
         s8 = GPIO.input(19)
 
         if s1 == False:
-            show_value(RPM)
+            c = obd.commands['RPM']
+            connection.watch(c, callback=new_value)
+            connection.start()
+            r = connection.query(c)
+            fullscreen_out(str(r.value))
+            time.sleep(0.75)
+            print("\033c")
+
         if s2 == False:
-            show_value(ENGINE_LOAD)
+            show_value('ENGINE_LOAD')
+            sleep(0.2)
         if s3 == False:
-            show_value(FUEL_INJECT_TIMING)
+            show_value('FUEL_INJECT_TIMING')
+            sleep(0.2)
         if s4 == False:
-            show_value(INTAKE_TEMP)
+            show_value('INTAKE_TEMP')
+            sleep(0.2)
         if s5 == False:
-            show_value(MAF)
+            show_value('MAF')
+            sleep(0.2)
         if s6 == False:
-            show_value(FUEL_RATE)
+            show_value('FUEL_RATE')
+            sleep(0.2)
         if s7 == False:
-            show_value(INTAKE_PRESSURE)
+            show_value('INTAKE_PRESSURE')
+            sleep(0.2)
         if s8 == False:
             print('Exiting....')
+            sleep(0.2)
             return
 
 def show_value(name):
     value = str(connection.watch(obd.commands[name]))
-    fancy_output.print_fancy(name + ': ' + value)
+    fullscreen_out(name + ': ' + value)
     time.sleep(0.75)
+    print("\033c")
 
 def print_value(value_name, value):
-    print(Fore.RED + Style.BRIGHT + value_name + ': ' + Style.RESET_ALL + Fore.RED + value + '\n')
+    print(Fore.RED + Style.BRIGHT + value_name + ': ' + Style.RESET_ALL + Fore.RED + value )
     print(Style.RESET_ALL)
 
 
@@ -96,11 +108,11 @@ def new_value(v):
         return
 
 def print_red(text):
-        print(Fore.RED + Style.BRIGHT+ text + Style.RESET_ALL + '\n')
+        print(Fore.RED + Style.BRIGHT+ str(text) + Style.RESET_ALL )
         return
 
 def print_green(text):
-        print(Fore.GREEN + Style.BRIGHT+ text + Style.RESET_ALL + '\n')
+        print(Fore.GREEN + Style.BRIGHT + str(text) + Style.RESET_ALL )
         return
 
 def switch_init():
@@ -110,7 +122,7 @@ def switch_init():
     GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(13, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(20, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(6, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(6 , GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(21, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(26, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(19, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -119,4 +131,3 @@ def switch_init():
 
 if __name__ == "__main__":
     main()
-

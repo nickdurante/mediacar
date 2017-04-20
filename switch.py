@@ -5,6 +5,7 @@ import time
 import subprocess
 import obd_display
 import music_player
+
 obd_display.print_green("Loading complete")
 def main():
 	GPIO.setmode(GPIO.BCM)
@@ -44,11 +45,14 @@ def main():
 			elif flag_clock == 0:
 				clock.terminate()
 				subprocess.call(['clear'])
+				helper()
 				flag_clock = 1
 		if s3 == False:
 			time.sleep(0.2)
 			obd_display.print_green('Attempting to connect to OBDII...')
-			subprocess.call(['/home/pi/connect_obd.sh'])
+			string = './connect_obd.sh'
+			subprocess.call(string.split())
+
 		if s4 == False:
 			time.sleep(0.2)
 			music_player.main()

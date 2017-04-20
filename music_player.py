@@ -5,7 +5,6 @@ from obd_display import print_red, print_green
 import glob
 import vlc_player
 #apt-get install python-dbus
-#pip3 install omxplayer-wrapper
 
 songs = glob.glob('/home/pi/music/*.mp3')
 index = 0
@@ -63,8 +62,8 @@ def main():
 			print_green("Next")
 			player.pause()
 			count = 0
-			vlc_player.load_file(player, instance, songs[index])
 			index += 1
+			vlc_player.load_file(player, instance, songs[index])
 
 		if s3 == False:
 			time.sleep(0.2)
